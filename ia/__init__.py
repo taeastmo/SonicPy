@@ -1,15 +1,15 @@
 # -*- coding: utf8 -*-
 #
-__version__ = "0.6.0"
+__version__ = "0.6.2"
 
 import os
 from pathlib import Path
 import platform
 from PyQt5 import QtWidgets
 from PyQt5 import QtCore
-import pyqtgraph
-import cv2
-import setuptools
+#import pyqtgraph
+import cv2 # pip install opencv-python
+#import setuptools
 
 
 theme = 1

@@ -8,7 +8,7 @@ from PyQt5.QtCore import QObject, pyqtSignal, Qt
 
 import pyqtgraph as pg
 from pyqtgraph import QtCore 
-from um.widgets.CustomWidgets import HorizontalSpacerItem, VerticalSpacerItem, FlatButton, NumberTextField
+from um.widgets.CustomWidgets import DoubleSpinBoxAlignRight, HorizontalSpacerItem, VerticalSpacerItem, FlatButton, NumberTextField
 from ia.widgets.FileViewWidget import FileViewWidget
 
 # Interpret image data as row-major instead of col-major
@@ -85,6 +85,13 @@ class ImageAnalysisWidget(QMainWindow):
         self.crop_btn = QtWidgets.QPushButton("Auto crop")
         self.crop_btn.setCheckable(True)
         self.crop_btn.setChecked(True)
+        self.rot_angle_edit = DoubleSpinBoxAlignRight()
+        self.rot_angle_edit.setMinimum(-180)
+        self.rot_angle_edit.setMaximum(180)
+        self.rot_angle_edit.setValue(0)
+        self.rot_angle_edit.setDecimals(1)
+
+        
         self.compute_btn = QtWidgets.QPushButton("Compute")
         self.compute_btn.setCheckable(True)
         self.fname_lbl = QtWidgets.QLineEdit('')
@@ -113,6 +120,8 @@ class ImageAnalysisWidget(QMainWindow):
         self._menu_bar_layout.setContentsMargins(0,0,0,0)
 
         self._menu_bar_layout.addWidget(self.crop_btn)
+        self._menu_bar_layout.addWidget(QtWidgets.QLabel('     Rotate (deg)'))
+        self._menu_bar_layout.addWidget(self.rot_angle_edit)
 
         self._menu_bar_layout.addWidget(QtWidgets.QLabel('      Sample type'))
 

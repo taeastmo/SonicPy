@@ -4,6 +4,7 @@ from utilities.utilities import *
 import numpy as np
 
 from scipy.signal import medfilt2d
+from scipy.ndimage import rotate
 
 from um.models.tek_fileIO import *
 
@@ -14,7 +15,7 @@ import numpy as np
 
 print(cv2.__file__)
 
-from skimage.transform import resize
+#from skimage.transform import resize
 from scipy import interpolate
 import copy
 
@@ -116,7 +117,8 @@ class ImageAnalysisModel():
                          'crop_limits':[],
                          'edges_roi':  [],
                          'edge_polynomial_order':[2,2],
-                         'edge_fit_threshold':[0.3,0.3]} 
+                         'edge_fit_threshold':[0.3,0.3],
+                         'rotation_angle':0} 
 
     def add_ROI(self, selected,pos, size):
 
@@ -132,6 +134,14 @@ class ImageAnalysisModel():
         [[x, y],[width, height]] = crop_limits
         self.cropped = src[y: y+height,x: x+ width]
 
+    def resize_without_skimage(self, image, horizontal_bin):
+        # Calculate the new width
+        new_width = image.shape[1] // horizontal_bin
+        
+        # Resize the image
+        resized_image = np.mean(image[:, :new_width * horizontal_bin].reshape(image.shape[0], new_width, horizontal_bin), axis=2)
+        
+        return resized_image
 
     def filter_image(self):
         horizontal_bin = self.settings['horizontal_bin']
@@ -143,8 +153,7 @@ class ImageAnalysisModel():
         image = medfilt2d(cropped,kernel_size=median_kernel_size) 
         
 
-        image_resized = resize(image, (image.shape[0] , image.shape[1] // horizontal_bin),
-                       anti_aliasing=True)
+        image_resized = self.resize_without_skimage(image, horizontal_bin)
 
         self.cropped_resized = image_resized
 
@@ -163,7 +172,11 @@ class ImageAnalysisModel():
 
     def load_file(self, fname, autocrop=False):
         self.filename = fname
-        src = np.flip(np.asarray(cv2.imread(fname,0),dtype=np.float),axis=0)
+        src = np.flip(np.asarray(cv2.imread(fname,0),dtype=float),axis=0)
+        if 'rotation_angle' in self.settings:
+            angle = self.settings['rotation_angle']
+            src = rotate(src, angle, reshape=False)
+
         self.src = src
         
 

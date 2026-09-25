@@ -17,7 +17,7 @@ from functools import partial
 from um.widgets.UtilityWidgets import save_file_dialog, open_file_dialog, open_files_dialog
 from um.controllers.pv_controller import pvController
 from utilities.utilities import *
-from um.models.FilterDefinitions import no_filter_controller, tukey_filter_controller
+from um.models.FilterDefinitions import no_filter_controller, tukey_filter_controller, nuttall_filter_controller
 
 from um.models.pvServer import pvServer
 
@@ -33,8 +33,11 @@ class ArbFilterController(pvController):
 
         self.arb_filter_1 = no_filter_controller(self)
         self.arb_filter_2 = tukey_filter_controller(self)
+        self.arb_filter_3 = nuttall_filter_controller(self)
 
-        self.f_types = [self.arb_filter_1.model.param['name'], self.arb_filter_2.model.param['name']]
+        self.f_types = [self.arb_filter_1.model.param['name'],
+                        self.arb_filter_2.model.param['name'],
+                        self.arb_filter_3.model.param['name']]
 
         
 
@@ -61,6 +64,7 @@ class ArbFilterController(pvController):
 
         self.arb_filter_edit_controller.add_controller(self.arb_filter_1.model.param['name'], self.arb_filter_1)
         self.arb_filter_edit_controller.add_controller(self.arb_filter_2.model.param['name'], self.arb_filter_2)
+        self.arb_filter_edit_controller.add_controller(self.arb_filter_3.model.param['name'], self.arb_filter_3)
 
         self.arb_filter_edit_controller.select_controller(self.arb_filter_2.model.param['name'])
 
@@ -68,6 +72,7 @@ class ArbFilterController(pvController):
 
         self.arb_filter_1.model.pvs['output_channel'].set(output_pv)
         self.arb_filter_2.model.pvs['output_channel'].set(output_pv)
+        self.arb_filter_3.model.pvs['output_channel'].set(output_pv)
 
         self.make_connections()
 
@@ -104,8 +109,17 @@ class ArbFilterController(pvController):
 
     def filter_type_signal_callback(self, pv_name, data):
         data = data[0]
-        
+
         self.arb_filter_edit_controller.widget.set_selected_choice(data)
+
+        # Forward the current source waveform to the newly selected filter
+        # so its Apply has data to operate on (and refresh the AFG plot now).
+        current_waveform = self.model.pvs['waveform_in']._val
+        if current_waveform:
+            index = self.f_types.index(data)
+            filter_controller = self.arb_filter_edit_controller.controllers[index]
+            filter_controller.model.pvs['waveform_in'].set(current_waveform)
+            filter_controller.model.pvs['apply'].set(True)
 
     
 
